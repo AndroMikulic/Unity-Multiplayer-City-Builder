@@ -2,6 +2,9 @@
 An open source game development project.
 The game is a Cities Skylines inspired multiplayer game, with no netcode freamework. 
 
+Design document
+https://docs.google.com/document/d/13qhfLKCsrhGi-BptnVD8VGiNTcXhuNSdvQ0IJCJFxtY/
+
 ### Client Side - Unity
 ### Server - .NET Console application
 
