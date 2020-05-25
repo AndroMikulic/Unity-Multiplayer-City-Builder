@@ -1,11 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "z0ZbJ6n5v+s856bCE6WrPTzXPCAz8cigZ5ULpSg3SY9NVWrYvJ2LxVdlndjqDrt/JtPwK9lYe6avzkEIZffWdg==",
+  "dgSpecHash": "gAehStt1sQem2zEWkWpb6TW9AWayp8lKUo88wC6mBdCgdlRJksiDkbSkn+TIsYy2+t36A5mRP2PFVecUzlyeJg==",
   "success": true,
   "projectFilePath": "D:\\My Documents\\Youtube\\Projects\\Players Buildlines\\Development Files\\Server\\Server.csproj",
-  "expectedPackageFiles": [
-    "C:\\Users\\Andro\\.nuget\\packages\\microsoft.netcore.platforms\\1.1.0\\microsoft.netcore.platforms.1.1.0.nupkg.sha512",
-    "C:\\Users\\Andro\\.nuget\\packages\\netstandard.library\\2.0.3\\netstandard.library.2.0.3.nupkg.sha512"
-  ],
+  "expectedPackageFiles": [],
   "logs": []
 }
