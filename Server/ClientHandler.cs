@@ -21,6 +21,7 @@ namespace Server
             this.server = server;
             this.client = client;
             this.uid = uid;
+
             clientThread = new Thread(new ThreadStart(Listen));
             clientThread.Start();
         }
@@ -40,6 +41,7 @@ namespace Server
                     server.ClientDisconnected(uid);
                     return;
                 }
+
                 data = Encoding.ASCII.GetString(rawData, 0, bytes);
 
                 //Debug

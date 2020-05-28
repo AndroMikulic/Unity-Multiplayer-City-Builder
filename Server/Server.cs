@@ -14,10 +14,17 @@ namespace Server
         Thread mainServerThread;
         TcpListener server;
         ConcurrentDictionary<string, ClientHandler> clients = new ConcurrentDictionary<string, ClientHandler>();
+
+        WorldDataManager worldDataManager;
         public Server(string localAddr, Int32 port)
         {
             this.localAddr = localAddr;
             this.port = port;
+
+            //Used to store information about the game world as well as save the game
+            worldDataManager = new WorldDataManager(this);
+
+            //Main server thread, listens for connections
             mainServerThread = new Thread(new ThreadStart(ListenForConnections));
             mainServerThread.Start();
         }
