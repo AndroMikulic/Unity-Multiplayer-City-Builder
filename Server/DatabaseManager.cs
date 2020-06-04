@@ -44,7 +44,7 @@ namespace Server
             while (rdr.Read())
             {
                 Building building = new Building();
-                building.id = rdr.GetInt32(0);
+                building.entityType = EntityType.BUILDING;
                 building.location = new Location(rdr.GetInt32(1), rdr.GetInt32(2));
                 building.type = rdr.GetInt32(3);
                 building.name = rdr.GetString(4);
@@ -52,30 +52,30 @@ namespace Server
                 building.resource = rdr.GetInt32(6);
 
                 //add the building to the list
-                wdm.buildings.Add(building);
+                wdm.buildings.TryAdd(building.location, building);
             }
             rdr.Close();
 
             //Load roads from the database
-            cmd.CommandText = Constants.SQLCommands.loadBuildings;
+            cmd.CommandText = Constants.SQLCommands.loadCity;
             rdr = cmd.ExecuteReader();
             while (rdr.Read())
             {
                 RoadTile roadTile = new RoadTile();
+                roadTile.entityType = EntityType.ROAD;
                 roadTile.location = new Location(rdr.GetInt32(0), rdr.GetInt32(1));
 
                 //add the road tile to the list
-                wdm.roadTiles.Add(roadTile);
+                wdm.roadTiles.TryAdd(roadTile.location, roadTile);
             }
             rdr.Close();
 
             //Load the city from the database
-            cmd.CommandText = Constants.SQLCommands.loadBuildings;
+            cmd.CommandText = Constants.SQLCommands.loadRoads;
             rdr = cmd.ExecuteReader();
             while (rdr.Read())
             {
                 City city = new City();
-                city.id = 0;
                 city.money = rdr.GetInt32(1);
                 city.taxes = rdr.GetInt32(2);
 
@@ -119,32 +119,30 @@ namespace Server
             cmd.CommandText = Constants.SQLCommands.emptyCityTable;
             cmd.ExecuteNonQuery();
 
-            foreach (Building building in wdm.buildings)
+            foreach (var building in wdm.buildings)
             {
                 cmd.CommandText = Constants.SQLCommands.saveBuilding;
-                cmd.Parameters.AddWithValue("@id", building.id);
-                cmd.Parameters.AddWithValue("@x", building.location.x);
-                cmd.Parameters.AddWithValue("@y", building.location.y);
-                cmd.Parameters.AddWithValue("@type", building.type);
-                cmd.Parameters.AddWithValue("@name", building.name);
-                cmd.Parameters.AddWithValue("@size", building.size);
-                cmd.Parameters.AddWithValue("@population", building.population);
-                cmd.Parameters.AddWithValue("@resource", building.resource);
+                cmd.Parameters.AddWithValue("@x", building.Value.location.x);
+                cmd.Parameters.AddWithValue("@y", building.Value.location.y);
+                cmd.Parameters.AddWithValue("@type", building.Value.type);
+                cmd.Parameters.AddWithValue("@name", building.Value.name);
+                cmd.Parameters.AddWithValue("@size", building.Value.size);
+                cmd.Parameters.AddWithValue("@population", building.Value.population);
+                cmd.Parameters.AddWithValue("@resource", building.Value.resource);
                 cmd.Prepare();
                 cmd.ExecuteNonQuery();
             }
 
-            foreach (RoadTile road in wdm.roadTiles)
+            foreach (var road in wdm.roadTiles)
             {
                 cmd.CommandText = Constants.SQLCommands.saveRoad;
-                cmd.Parameters.AddWithValue("@x", road.location.x);
-                cmd.Parameters.AddWithValue("@y", road.location.y);
+                cmd.Parameters.AddWithValue("@x", road.Value.location.x);
+                cmd.Parameters.AddWithValue("@y", road.Value.location.y);
                 cmd.Prepare();
                 cmd.ExecuteNonQuery();
             }
 
             cmd.CommandText = Constants.SQLCommands.saveBuilding;
-            cmd.Parameters.AddWithValue("@id", 0);
             cmd.Parameters.AddWithValue("@money", wdm.city.money);
             cmd.Parameters.AddWithValue("@taxes", wdm.city.taxes);
             cmd.Prepare();

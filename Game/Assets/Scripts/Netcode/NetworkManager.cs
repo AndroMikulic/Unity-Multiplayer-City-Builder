@@ -1,10 +1,14 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using UnityEngine;
 
 public class NetworkManager : MonoBehaviour {
+
+	public Managers managers;
+
 	[SerializeField]
 	string ipAddress;
 
@@ -12,24 +16,62 @@ public class NetworkManager : MonoBehaviour {
 	int port;
 
 	TcpClient client;
-	Thread networkThread;
 	NetworkStream stream;
-	byte[] rawData;
 
-	void Start()
-	{
-		networkThread = new Thread(new ThreadStart(Connect));
-		networkThread.Start();
+	Thread listenThread;
+	Thread sendThread;
+
+	public BlockingCollection<Packet> outboundPackets = new BlockingCollection<Packet> ();
+
+	void Start () {
+
+		client = new TcpClient (ipAddress, port);
+		stream = client.GetStream ();
+
+		listenThread = new Thread (new ThreadStart (Listen));
+		listenThread.Start ();
+
+		sendThread = new Thread (new ThreadStart (Send));
+		sendThread.Start ();
 	}
 
-	void Connect()
-	{
-		client = new TcpClient(ipAddress, port);
-		stream = client.GetStream();
+	void Listen () {
+		while (true) {
+			byte[] rawData = new byte[Constants.Networking.MAX_PACKET_SIZE];
+			int bytes = 0;
+			try {
+				bytes = stream.Read (rawData, 0, rawData.Length);
+			} catch (Exception e) {
+				Console.WriteLine (e.StackTrace);
+			}
 
-		//debug
-		string data = "Hello, I want to play on this city :)";
-		rawData = System.Text.Encoding.ASCII.GetBytes(data);
-		stream.Write(rawData, 0, rawData.Length);
+			//Check if bytes == 0, if so, connection was dropped
+			if (bytes == 0) {
+				return;
+			}
+
+			String data = String.Empty;
+			data = Encoding.UTF8.GetString (rawData, 0, bytes);
+			HandlePacket (Packet.Parse (data));
+		}
+	}
+
+	void Send () {
+		while (true) {
+			Packet packet = outboundPackets.Take ();
+			byte[] rawData = Encoding.UTF8.GetBytes (packet.json);
+			stream.Write (rawData, 0, rawData.Length);
+		}
+	}
+
+	void HandlePacket (Packet packet) {
+		Debug.Log (packet.type);
+		if (packet.type.Equals (Constants.Networking.PacketTypes.ENTITY_CREATE)) {
+			managers.entityManager.spawner.AddEntity (packet.payload);
+		}
+
+		if (packet.type.Equals (Constants.Networking.PacketTypes.ENTITY_DELETE)) {
+
+		}
 	}
 }
