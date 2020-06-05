@@ -15,6 +15,8 @@ public class NetworkManager : MonoBehaviour {
 	[SerializeField]
 	int port;
 
+	public bool connected = false;
+
 	TcpClient client;
 	NetworkStream stream;
 
@@ -27,6 +29,8 @@ public class NetworkManager : MonoBehaviour {
 
 		client = new TcpClient (ip.text, port);
 		stream = client.GetStream ();
+
+		connected = true;
 
 		listenThread = new Thread (new ThreadStart (Listen));
 		listenThread.Start ();

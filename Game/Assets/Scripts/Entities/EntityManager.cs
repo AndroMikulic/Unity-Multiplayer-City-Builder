@@ -14,20 +14,23 @@ public class EntityManager : MonoBehaviour {
 
 	public EntitySpawner spawner;
 
-	void Start(){
-		Entity e = new Entity();
+	void Start () {
+		Entity e = new Entity ();
 		e.entityType = EntityType.BUILDING;
 		selectedEntity = e;
 	}
 
 	void Update () {
 		if (Input.GetMouseButtonDown (0)) {
+			if (!managers.networkManager.connected) {
+				return;
+			}
 			RaycastHit hit;
 			Ray ray = camera.ScreenPointToRay (Input.mousePosition);
 			if (Physics.Raycast (ray, out hit, Mathf.Infinity)) {
 				HitPointToLocation (hit.point);
 				if (mode.Equals (Mode.CREATE)) {
-					CreateEntity (clickPos);
+					RequestEntityCreation (clickPos);
 				}
 			}
 		}
@@ -38,18 +41,18 @@ public class EntityManager : MonoBehaviour {
 		clickPos.y = (int) point.z + worldOffset;
 	}
 
-	public void CreateEntity (Location location) {
+	public void RequestEntityCreation (Location location) {
 		if (selectedEntity.entityType.Equals (EntityType.BUILDING)) {
 			Building building = new Building ();
 			building.location = location;
 			building.size = selectedSize;
-			building.type = (int) Constants.Gameplay.BuildingType.RESIDENTIAL; 
+			building.type = (int) Constants.Gameplay.BuildingType.RESIDENTIAL;
 			building.resource = 10;
-			building.name = "Kafana";
+			building.name = "Unity HQ";
 			building.entityType = EntityType.BUILDING;
 
-			Packet packet = new Packet(Constants.Networking.PacketTypes.ENTITY_CREATE, building);
-			managers.networkManager.outboundPackets.Add(packet);
+			Packet packet = new Packet (Constants.Networking.PacketTypes.ENTITY_CREATE, building);
+			managers.networkManager.outboundPackets.Add (packet);
 		}
 	}
 

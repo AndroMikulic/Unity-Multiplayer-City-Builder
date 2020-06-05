@@ -33,6 +33,7 @@ namespace Server
 
             stream = client.GetStream();
             heartbeat = new Thread(new ThreadStart(Heartbeat));
+            heartbeat.Start();
             clientSend = new Thread(new ThreadStart(Send));
             clientSend.Start();
             clientListen = new Thread(new ThreadStart(Listen));

@@ -1567,6 +1567,7 @@ MonoBehaviour:
   managers: {fileID: 1618855334}
   ip: {fileID: 582532734}
   port: 1337
+  connected: 0
 --- !u!4 &1435926033
 Transform:
   m_ObjectHideFlags: 0
