@@ -62,6 +62,7 @@ namespace Server
             Console.WriteLine(uid + " disconnected");
             ClientHandler handler;
             clients.TryRemove(uid, out handler);
+            handler = null;
         }
 
         public ClientHandler GetClient(string uid)

@@ -13,7 +13,8 @@ namespace Server
 
             public static class PacketTypes
             {
-                public static string NEW_CONNECTION = "NEW_CONNECTION";
+                public static string WORLD_INIT = "WORLD_INIT";
+                public static string WORLD_INIT_DONE = "WORLD_INIT_DONE";
                 public static string ENTITY_DELETE = "ENTITY_DELETE";
                 public static string ENTITY_CREATE = "ENTITY_CREATE";
                 public static string OPERATION_FAILED = "OPERATION_FAILED";

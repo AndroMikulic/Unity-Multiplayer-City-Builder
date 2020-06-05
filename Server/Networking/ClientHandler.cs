@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Timers;
 
 namespace Server
 {
@@ -18,6 +19,8 @@ namespace Server
 
         Thread clientListen;
         Thread clientSend;
+        Thread heartbeat;
+        System.Timers.Timer heartbeatTimer;
         NetworkStream stream;
 
         public BlockingCollection<Packet> outgoingPackets = new BlockingCollection<Packet>();
@@ -29,11 +32,27 @@ namespace Server
             this.uid = uid;
 
             stream = client.GetStream();
-
+            heartbeat = new Thread(new ThreadStart(Heartbeat));
             clientSend = new Thread(new ThreadStart(Send));
             clientSend.Start();
             clientListen = new Thread(new ThreadStart(Listen));
             clientListen.Start();
+        }
+
+        void Heartbeat()
+        {
+            heartbeatTimer = new System.Timers.Timer(1000);
+            heartbeatTimer.Elapsed += CheckConnecton;
+            heartbeatTimer.AutoReset = true;
+            heartbeatTimer.Enabled = true;
+        }
+
+        void CheckConnecton(Object source, ElapsedEventArgs e)
+        {
+            if(!client.Connected)
+            {
+                server.ClientDisconnected(uid);
+            }
         }
 
         void Send()
@@ -42,7 +61,17 @@ namespace Server
             {
                 Packet packet = outgoingPackets.Take();
                 byte[] rawData = Encoding.UTF8.GetBytes(packet.json);
-                stream.Write(rawData, 0, rawData.Length);
+                try
+                {
+                    stream.Write(rawData, 0, rawData.Length);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Error sending packet data");
+                    server.ClientDisconnected(uid);
+                    return;
+                }
+
             }
         }
 
@@ -82,13 +111,13 @@ namespace Server
             }
             if (initialized)
             {
-                if (packet.type.Equals(Constants.Networking.PacketTypes.NEW_CONNECTION))
+                if (packet.type.Equals(Constants.Networking.PacketTypes.WORLD_INIT))
                 {
 
                 }
                 return;
             }
-            
+
             KeyValuePair<string, Packet> kv = new KeyValuePair<string, Packet>(this.uid, packet);
             if (packet.type.Equals(Constants.Networking.PacketTypes.ENTITY_CREATE))
             {

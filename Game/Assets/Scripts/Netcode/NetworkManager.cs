@@ -4,13 +4,13 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using UnityEngine;
+using TMPro;
 
 public class NetworkManager : MonoBehaviour {
 
 	public Managers managers;
 
-	[SerializeField]
-	string ipAddress;
+	public TMP_InputField ip;
 
 	[SerializeField]
 	int port;
@@ -23,9 +23,9 @@ public class NetworkManager : MonoBehaviour {
 
 	public BlockingCollection<Packet> outboundPackets = new BlockingCollection<Packet> ();
 
-	void Start () {
+	public void Connect () {
 
-		client = new TcpClient (ipAddress, port);
+		client = new TcpClient (ip.text, port);
 		stream = client.GetStream ();
 
 		listenThread = new Thread (new ThreadStart (Listen));

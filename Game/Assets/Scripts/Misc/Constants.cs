@@ -1,13 +1,10 @@
-﻿
-
-public static class Constants {
-	public static string WORLD_CONFIG_FILE = "world-config.json";
-
+﻿public static class Constants {
 	public static class Networking {
 		public static int MAX_PACKET_SIZE = 1024; // in bytes
 
 		public static class PacketTypes {
-			public static string NEW_CONNECTION = "NEW_CONNECTION";
+			public static string WORLD_INIT = "WORLD_INIT";
+			public static string WORLD_INIT_DONE = "WORLD_INIT_DONE";
 			public static string ENTITY_DELETE = "ENTITY_DELETE";
 			public static string ENTITY_CREATE = "ENTITY_CREATE";
 			public static string OPERATION_FAILED = "OPERATION_FAILED";
