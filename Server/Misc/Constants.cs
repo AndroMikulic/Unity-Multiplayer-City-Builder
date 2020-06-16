@@ -9,7 +9,7 @@ namespace Server
 
         public static class Networking
         {
-            public static int MAX_PACKET_SIZE = 1024; // in bytes
+            public static int MAX_PACKET_SIZE = 256; // in bytes
 
             public static class PacketTypes
             {
@@ -35,6 +35,7 @@ namespace Server
                 INDUSTRIAL = 3,
                 MISC = 4
             }
+            public static int WORLD_SIZE = 512;
             public static int BASE_BUILDING_COST = 100;
             public static int ROAD_TILE_COST = 10;
         }

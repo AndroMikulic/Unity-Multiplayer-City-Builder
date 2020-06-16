@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Server.Misc;
+using System;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -8,6 +9,8 @@ namespace Server.Entities
     class Entity
     {
         public EntityType entityType;
+        public Location location;
+        public long tileTimestamp;
 
         public static Entity ParseToEntity(dynamic obj)
         {

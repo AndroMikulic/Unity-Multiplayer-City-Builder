@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Dynamic;
+using System.Globalization;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using UnityEngine;
 using TMPro;
+using UnityEngine;
 
 public class NetworkManager : MonoBehaviour {
 
@@ -12,10 +14,10 @@ public class NetworkManager : MonoBehaviour {
 
 	public TMP_InputField ip;
 
-	[SerializeField]
-	int port;
+	public int port;
 
 	public bool connected = false;
+	public bool initialized = false;
 
 	TcpClient client;
 	NetworkStream stream;
@@ -35,8 +37,17 @@ public class NetworkManager : MonoBehaviour {
 		listenThread = new Thread (new ThreadStart (Listen));
 		listenThread.Start ();
 
+		RequestWorldInit ();
+
 		sendThread = new Thread (new ThreadStart (Send));
 		sendThread.Start ();
+	}
+
+	void RequestWorldInit () {
+		dynamic payload = new ExpandoObject ();
+		payload.message = "Hello!";
+		Packet p = new Packet (Constants.Networking.PacketTypes.WORLD_INIT, payload);
+		outboundPackets.Add (p);
 	}
 
 	void Listen () {
@@ -54,8 +65,7 @@ public class NetworkManager : MonoBehaviour {
 				return;
 			}
 
-			String data = String.Empty;
-			data = Encoding.UTF8.GetString (rawData, 0, bytes);
+			String data = Encoding.UTF8.GetString (rawData, 0, bytes);
 			HandlePacket (Packet.Parse (data));
 		}
 	}
@@ -63,19 +73,21 @@ public class NetworkManager : MonoBehaviour {
 	void Send () {
 		while (true) {
 			Packet packet = outboundPackets.Take ();
-			byte[] rawData = Encoding.UTF8.GetBytes (packet.json);
+			byte[] rawData = Encoding.UTF8.GetBytes (packet.json.PadRight (Constants.Networking.MAX_PACKET_SIZE, ' '));
 			stream.Write (rawData, 0, rawData.Length);
 		}
 	}
 
 	void HandlePacket (Packet packet) {
-		Debug.Log (packet.type);
+
 		if (packet.type.Equals (Constants.Networking.PacketTypes.ENTITY_CREATE)) {
 			managers.entityManager.spawner.AddEntity (packet.payload);
+			return;
 		}
 
 		if (packet.type.Equals (Constants.Networking.PacketTypes.ENTITY_DELETE)) {
-
+			managers.entityManager.remover.RemoveEntity (packet.payload);
+			return;
 		}
 	}
 }

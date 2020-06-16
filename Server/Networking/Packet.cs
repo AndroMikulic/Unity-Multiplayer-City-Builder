@@ -50,7 +50,6 @@ namespace Server.Networking
             packet.type = obj.type;
             packet.payload = obj.payload;
             packet.json = s;
-
             return packet;
         }
     }

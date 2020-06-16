@@ -5,8 +5,6 @@ namespace Server.Entities
 {
     class RoadTile : Entity
     {
-        public Location location;
-
         public static RoadTile ParseToRoadTile(dynamic obj)
         {
             RoadTile tile = new RoadTile();
@@ -14,6 +12,7 @@ namespace Server.Entities
             {
                 tile.entityType = obj.entityType;
                 tile.location = new Location(obj.location.x, obj.location.y);
+
                 return tile;
             }
             catch (Exception e)

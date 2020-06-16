@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Concurrent;
+using UnityEngine;
 
 public class EntityManager : MonoBehaviour {
 
@@ -13,6 +15,9 @@ public class EntityManager : MonoBehaviour {
 	public int selectedSize = 0;
 
 	public EntitySpawner spawner;
+	public EntityRemover remover;
+	public Transform entityCollection;
+	public long[, ] tileTimestamps = new long[Constants.Gameplay.WORLD_SIZE, Constants.Gameplay.WORLD_SIZE];
 
 	void Start () {
 		Entity e = new Entity ();
@@ -31,6 +36,20 @@ public class EntityManager : MonoBehaviour {
 				HitPointToLocation (hit.point);
 				if (mode.Equals (Mode.CREATE)) {
 					RequestEntityCreation (clickPos);
+				}
+			}
+		}
+
+		if (Input.GetMouseButtonDown (1)) {
+			if (!managers.networkManager.connected) {
+				return;
+			}
+			RaycastHit hit;
+			Ray ray = camera.ScreenPointToRay (Input.mousePosition);
+			if (Physics.Raycast (ray, out hit, Mathf.Infinity)) {
+				HitPointToLocation (hit.point);
+				if (mode.Equals (Mode.CREATE)) {
+					RequestEntityDeletion (clickPos);
 				}
 			}
 		}
@@ -53,6 +72,23 @@ public class EntityManager : MonoBehaviour {
 
 			Packet packet = new Packet (Constants.Networking.PacketTypes.ENTITY_CREATE, building);
 			managers.networkManager.outboundPackets.Add (packet);
+		}
+	}
+
+	public void RequestEntityDeletion (Location location) {
+		Packet packet = new Packet (Constants.Networking.PacketTypes.ENTITY_DELETE, location);
+		managers.networkManager.outboundPackets.Add (packet);
+	}
+
+	public bool ValidateTimestamp (long timestamp, Location location) {
+		lock (tileTimestamps) {
+			int X = location.x - 1;
+			int Y = location.y - 1;
+			if (tileTimestamps[X, Y] < timestamp) {
+				tileTimestamps[X, Y] = timestamp;
+				return true;
+			}
+			return false;
 		}
 	}
 

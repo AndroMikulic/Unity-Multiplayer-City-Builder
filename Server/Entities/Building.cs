@@ -5,7 +5,6 @@ namespace Server.Entities
 {
     class Building : Entity
     {
-        public Location location;
         public int type;
         public int size;
         public string name;
@@ -19,6 +18,7 @@ namespace Server.Entities
             {
                 building.entityType = obj.entityType;
                 building.location = new Location((int)obj.location.x, (int)obj.location.y);
+
                 building.type = obj.type;
                 building.size = obj.size;
                 building.name = obj.name;

@@ -1,3 +1,4 @@
 {
-	"name": "BrackeysTown"
+	"name": "BrackeysTown",
+	"autosaveInterval": 10
 }

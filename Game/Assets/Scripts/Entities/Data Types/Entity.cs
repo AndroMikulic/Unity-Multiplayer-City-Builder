@@ -1,13 +1,19 @@
 ﻿using System;
 
+[Serializable]
 public class Entity {
+
 	public EntityType entityType;
+	public Location location;
+	public long tileTimestamp;
 
 	public static Entity ParseToEntity (dynamic obj) {
-		Entity entiy = new Entity ();
+		Entity entity = new Entity ();
 		try {
-			entiy.entityType = obj.entityType;
-			return entiy;
+			entity.entityType = obj.entityType;
+			entity.location = new Location ((int) obj.location.x, (int) obj.location.y);
+			entity.tileTimestamp = obj.tileTimestamp;
+			return entity;
 		} catch (Exception e) {
 			Console.WriteLine ("Error parsing object to Entity");
 			return null;

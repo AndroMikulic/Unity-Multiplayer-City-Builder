@@ -2,8 +2,10 @@
 using System.Dynamic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using UnityEngine;
 
 public class Packet {
+
 	public string timestamp;
 	public string type;
 	public dynamic payload;
@@ -14,12 +16,12 @@ public class Packet {
 	}
 
 	public Packet (String packetType, dynamic payload) {
+
 		this.timestamp = DateTime.UtcNow.ToString ();
 		this.type = packetType;
 		this.payload = payload;
 
 		dynamic data = new ExpandoObject ();
-		data.timestamp = this.timestamp;
 		data.type = this.type;
 		data.payload = this.payload;
 		this.json = JsonConvert.SerializeObject (data);
@@ -30,14 +32,14 @@ public class Packet {
 		try {
 			obj = JObject.Parse (s);
 		} catch (Exception e) {
-			Console.WriteLine (e.StackTrace);
+			Debug.Log (e);
 			return null;
 		}
 
 		Packet packet = new Packet ();
-		packet.timestamp = obj.timestamp;
 		packet.type = obj.type;
 		packet.payload = obj.payload;
+		packet.timestamp = obj.timestamp;
 		packet.json = s;
 
 		return packet;

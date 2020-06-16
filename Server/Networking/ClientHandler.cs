@@ -1,4 +1,6 @@
-﻿using Server.Networking;
+﻿using Server.Entities;
+using Server.Misc;
+using Server.Networking;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -21,6 +23,7 @@ namespace Server
         Thread clientSend;
         Thread heartbeat;
         System.Timers.Timer heartbeatTimer;
+        bool threadKillSignal = false;
         NetworkStream stream;
 
         public BlockingCollection<Packet> outgoingPackets = new BlockingCollection<Packet>();
@@ -50,8 +53,10 @@ namespace Server
 
         void CheckConnecton(Object source, ElapsedEventArgs e)
         {
-            if(!client.Connected)
+            if (!client.Connected)
             {
+                heartbeatTimer.Enabled = false;
+                threadKillSignal = true;
                 server.ClientDisconnected(uid);
             }
         }
@@ -60,8 +65,12 @@ namespace Server
         {
             while (true)
             {
+                if (threadKillSignal)
+                {
+                    return;
+                }
                 Packet packet = outgoingPackets.Take();
-                byte[] rawData = Encoding.UTF8.GetBytes(packet.json);
+                byte[] rawData = Encoding.UTF8.GetBytes(packet.json.PadRight(Constants.Networking.MAX_PACKET_SIZE, ' '));
                 try
                 {
                     stream.Write(rawData, 0, rawData.Length);
@@ -80,6 +89,11 @@ namespace Server
         {
             while (true)
             {
+                if (threadKillSignal)
+                {
+                    return;
+                }
+
                 Byte[] rawData = new Byte[Constants.Networking.MAX_PACKET_SIZE];
                 Int32 bytes = 0;
                 try
@@ -98,8 +112,7 @@ namespace Server
                     return;
                 }
 
-                String data = String.Empty;
-                data = Encoding.UTF8.GetString(rawData, 0, bytes);
+                String data = Encoding.UTF8.GetString(rawData, 0, bytes);
                 HandlePacket(Packet.Parse(data));
             }
         }
@@ -110,11 +123,23 @@ namespace Server
             {
                 return;
             }
-            if (initialized)
+            if (!initialized)
             {
                 if (packet.type.Equals(Constants.Networking.PacketTypes.WORLD_INIT))
                 {
-
+                    initialized = true;
+                    foreach (KeyValuePair<Location, Building> bkv in server.worldDataManager.buildings)
+                    {
+                        bkv.Value.tileTimestamp = server.worldDataManager.GetTileTimestamp(bkv.Value.location);
+                        Packet p = new Packet(Constants.Networking.PacketTypes.ENTITY_CREATE, bkv.Value);
+                        outgoingPackets.Add(p);
+                    }
+                    foreach (KeyValuePair<Location, RoadTile> rkv in server.worldDataManager.roadTiles)
+                    {
+                        rkv.Value.tileTimestamp = server.worldDataManager.GetTileTimestamp(rkv.Value.location);
+                        Packet p = new Packet(Constants.Networking.PacketTypes.ENTITY_CREATE, rkv.Value);
+                        outgoingPackets.Add(p);
+                    }
                 }
                 return;
             }

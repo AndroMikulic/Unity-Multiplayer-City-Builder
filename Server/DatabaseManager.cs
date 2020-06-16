@@ -1,10 +1,9 @@
 ﻿using Server.Entities;
 using Server.Misc;
 using System;
-using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
-using System.Text;
+using System.Timers;
 
 namespace Server
 {
@@ -13,11 +12,23 @@ namespace Server
         public WorldDataManager wdm;
         public string databaseFile;
         public string databaseLocation;
+        System.Timers.Timer heartbeatTimer;
 
         public DatabaseManager(WorldDataManager wdm)
         {
             this.wdm = wdm;
             LoadDatabase();
+            StartAutosave();
+        }
+
+        void StartAutosave()
+        {
+            int interval = (int)wdm.worldConfig.autosaveInterval;
+            heartbeatTimer = new System.Timers.Timer(interval * 1000);
+            heartbeatTimer.Elapsed += SaveWorld;
+            heartbeatTimer.AutoReset = true;
+            heartbeatTimer.Enabled = true;
+            Console.WriteLine("Autosaving every " + interval + " seconds");
         }
 
         void LoadDatabase()
@@ -45,9 +56,10 @@ namespace Server
             {
                 Building building = new Building();
                 building.entityType = EntityType.BUILDING;
-                building.location = new Location(rdr.GetInt32(1), rdr.GetInt32(2));
-                building.type = rdr.GetInt32(3);
-                building.name = rdr.GetString(4);
+                building.location = new Location(rdr.GetInt32(0), rdr.GetInt32(1));
+                building.type = rdr.GetInt32(2);
+                building.name = rdr.GetString(3);
+                building.size = rdr.GetInt32(4);
                 building.population = rdr.GetInt32(5);
                 building.resource = rdr.GetInt32(6);
 
@@ -57,7 +69,7 @@ namespace Server
             rdr.Close();
 
             //Load roads from the database
-            cmd.CommandText = Constants.SQLCommands.loadCity;
+            cmd.CommandText = Constants.SQLCommands.loadRoads;
             rdr = cmd.ExecuteReader();
             while (rdr.Read())
             {
@@ -71,13 +83,13 @@ namespace Server
             rdr.Close();
 
             //Load the city from the database
-            cmd.CommandText = Constants.SQLCommands.loadRoads;
+            cmd.CommandText = Constants.SQLCommands.loadCity;
             rdr = cmd.ExecuteReader();
             while (rdr.Read())
             {
                 City city = new City();
-                city.money = rdr.GetInt32(1);
-                city.taxes = rdr.GetInt32(2);
+                city.money = rdr.GetInt32(0);
+                city.taxes = rdr.GetInt32(1);
 
                 //set the city in the world data manager
                 wdm.city = city;
@@ -104,12 +116,12 @@ namespace Server
             Console.WriteLine("Created new database file: " + databaseLocation);
         }
 
-        public void SaveWorld()
+        public void SaveWorld(Object source, ElapsedEventArgs e)
         {
-            Console.WriteLine("Saving world...");
+            Console.WriteLine("Saving world");
             using var connection = new SQLiteConnection(databaseLocation);
             connection.Open();
-            using var cmd = new SQLiteCommand(connection);
+            var cmd = new SQLiteCommand(connection);
 
             //Empty the table to resave, not the smartest idea but works for now
             cmd.CommandText = Constants.SQLCommands.emptyBuildingsTable;
@@ -142,7 +154,7 @@ namespace Server
                 cmd.ExecuteNonQuery();
             }
 
-            cmd.CommandText = Constants.SQLCommands.saveBuilding;
+            cmd.CommandText = Constants.SQLCommands.saveCity;
             cmd.Parameters.AddWithValue("@money", wdm.city.money);
             cmd.Parameters.AddWithValue("@taxes", wdm.city.taxes);
             cmd.Prepare();

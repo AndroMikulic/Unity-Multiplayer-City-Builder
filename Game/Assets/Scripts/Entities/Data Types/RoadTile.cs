@@ -1,7 +1,7 @@
 ﻿using System;
 
-class RoadTile : Entity {
-	public Location location;
+[Serializable]
+public class RoadTile : Entity {
 
 	public static RoadTile ParseToRoadTile (dynamic obj) {
 		RoadTile tile = new RoadTile ();

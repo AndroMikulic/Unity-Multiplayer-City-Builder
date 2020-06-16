@@ -1,7 +1,7 @@
 ﻿using System;
 
+[Serializable]
 public class Building : Entity {
-	public Location location;
 	public int type;
 	public int size;
 	public string name;

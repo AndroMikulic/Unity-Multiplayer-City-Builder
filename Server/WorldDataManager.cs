@@ -21,6 +21,7 @@ namespace Server
         public ConcurrentDictionary<Location, Building> buildings = new ConcurrentDictionary<Location, Building>();
         public ConcurrentDictionary<Location, RoadTile> roadTiles = new ConcurrentDictionary<Location, RoadTile>();
         public City city = new City();
+        public long[,] tileTimestamp = new long[Constants.Gameplay.WORLD_SIZE, Constants.Gameplay.WORLD_SIZE];
 
         Thread entityUpdateThread;
         public BlockingCollection<KeyValuePair<string, Packet>> entityUpdateQueue = new BlockingCollection<KeyValuePair<string, Packet>>();
@@ -32,6 +33,7 @@ namespace Server
 
             //Used to manage the database
             databaseManager = new DatabaseManager(this);
+            InitializeTileTimestamps();
 
             entityUpdateThread = new Thread(new ThreadStart(OperationQueueHandler));
             entityUpdateThread.Start();
@@ -71,8 +73,9 @@ namespace Server
 
         void CreateEntity(string uid, dynamic obj)
         {
+            obj.timestamp = DateTime.UtcNow.ToString();
             int price = -1;
-            Location l = new Location(-1, -1);
+            Location location = new Location(-1, -1);
             Building building = new Building();
             RoadTile roadTile = new RoadTile();
             Entity entity = Entity.ParseToEntity(obj);
@@ -81,29 +84,30 @@ namespace Server
             {
                 building = Building.ParseToBuilding(obj);
                 price = building.size * building.size * Constants.Gameplay.BASE_BUILDING_COST;
-                l = building.location;
+                location = building.location;
             }
 
             if (entity.entityType.Equals(EntityType.ROAD))
             {
                 roadTile = RoadTile.ParseToRoadTile(obj);
                 price = Constants.Gameplay.ROAD_TILE_COST;
-                l = roadTile.location;
+                location = roadTile.location;
 
             }
 
             if (city.money - price > 0)
             {
-                if (!LocationOccupied(l))
+                if (!LocationOccupied(location))
                 {
                     if (entity.entityType.Equals(EntityType.BUILDING))
                     {
-                        buildings.TryAdd(l, building);
+                        buildings.TryAdd(location, building);
                     }
                     else if (entity.entityType.Equals(EntityType.ROAD))
                     {
-                        roadTiles.TryAdd(l, roadTile);
+                        roadTiles.TryAdd(location, roadTile);
                     }
+                    obj.tileTimestamp = UpdateTile(location);
                     Packet okPacket = new Packet(Constants.Networking.PacketTypes.ENTITY_CREATE, obj);
                     server.broadcastPackets.Add(okPacket);
                     return;
@@ -123,10 +127,11 @@ namespace Server
 
         void DeleteEntity(string uid, dynamic obj)
         {
-            Location location = new Location(obj.x, obj.y);
+
+            Location location = Location.ParseToLocation(obj);
             bool success = false;
-            
-            if(buildings.ContainsKey(location))
+
+            if (buildings.ContainsKey(location))
             {
                 Building b = new Building();
                 buildings.TryRemove(location, out b);
@@ -138,10 +143,13 @@ namespace Server
                 roadTiles.TryRemove(location, out r);
                 success = true;
             }
-
+            Console.WriteLine(success);
             if (success)
             {
-                Packet okPacket = new Packet(Constants.Networking.PacketTypes.ENTITY_DELETE, location);
+                Entity e = new Entity();
+                e.location = location;
+                e.tileTimestamp = UpdateTile(location);
+                Packet okPacket = new Packet(Constants.Networking.PacketTypes.ENTITY_DELETE, e);
                 server.broadcastPackets.Add(okPacket);
             }
             else
@@ -163,6 +171,31 @@ namespace Server
                 }
             }
             return true;
+        }
+
+        void InitializeTileTimestamps()
+        {
+            for (int i = 0; i < Constants.Gameplay.WORLD_SIZE; ++i)
+            {
+                for (int j = 0; j < Constants.Gameplay.WORLD_SIZE; ++j)
+                {
+                    ++tileTimestamp[i, j];
+                }
+            }
+        }
+
+        public long UpdateTile(Location location)
+        {
+            int x = location.x - 1;
+            int y = location.y - 1;
+            ++tileTimestamp[x, y];
+            return tileTimestamp[x, y];
+        }
+
+        public long GetTileTimestamp(Location location)
+        {
+            Console.WriteLine(location.ToString());
+            return tileTimestamp[location.x - 1, location.y - 1];
         }
     }
 }

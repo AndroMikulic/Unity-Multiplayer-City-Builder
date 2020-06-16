@@ -1,10 +1,14 @@
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class EntitySpawner : MonoBehaviour {
 
-	public BlockingCollection<dynamic> entityQueue = new BlockingCollection<dynamic> ();
+	public EntityManager entityManager;
+
+	public BlockingCollection<dynamic> spawnQueue = new BlockingCollection<dynamic> ();
 	public int queueCount = 0;
 
 	public Transform referenceFrame;
@@ -22,7 +26,7 @@ public class EntitySpawner : MonoBehaviour {
 		while (true) {
 			if (queueCount > 0) {
 				queueCount--;
-				dynamic obj = entityQueue.Take ();
+				dynamic obj = spawnQueue.Take ();
 				SpawnEntity (obj);
 			}
 			yield return null;
@@ -30,12 +34,15 @@ public class EntitySpawner : MonoBehaviour {
 	}
 
 	public void AddEntity (dynamic obj) {
-		entityQueue.Add (obj);
+		spawnQueue.Add (obj);
 		queueCount++;
 	}
 
 	void SpawnEntity (dynamic obj) {
 		Entity e = Entity.ParseToEntity (obj);
+		if (!entityManager.ValidateTimestamp (e.tileTimestamp, e.location)) {
+			return;
+		}
 		if (e.entityType.Equals (EntityType.BUILDING)) {
 			SpawnBuilding (Building.ParseToBuilding (obj));
 		} else if (e.entityType.Equals (EntityType.ROAD)) {
@@ -47,15 +54,15 @@ public class EntitySpawner : MonoBehaviour {
 		Vector3 position = new Vector3 (0, 1, 0);
 		position.x = building.location.x + positionOffset;
 		position.z = building.location.y + positionOffset;
-		GameObject prefab = new GameObject ();
+		GameObject prefab;
 		if (building.size == 1 || true) {
-			int item = Random.Range (0, buildings_size_1.Length);
+			int item = UnityEngine.Random.Range (0, buildings_size_1.Length);
 			prefab = Instantiate (buildings_size_1[item], new Vector3 (0, -64, 0), Quaternion.identity);
 		}
-
-		prefab.transform.parent = referenceFrame;
+		prefab.transform.parent = entityManager.entityCollection;
+		prefab.GetComponent<BuildingPrefab> ().building = building;
 		prefab.transform.localPosition = position;
-
+		prefab.name = building.location.ToString ();
 	}
 
 	void SpawnRoad (RoadTile roadTile) {
