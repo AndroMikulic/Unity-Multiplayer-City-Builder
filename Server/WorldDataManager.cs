@@ -143,7 +143,7 @@ namespace Server
                 roadTiles.TryRemove(location, out r);
                 success = true;
             }
-            Console.WriteLine(success);
+
             if (success)
             {
                 Entity e = new Entity();
@@ -194,7 +194,6 @@ namespace Server
 
         public long GetTileTimestamp(Location location)
         {
-            Console.WriteLine(location.ToString());
             return tileTimestamp[location.x - 1, location.y - 1];
         }
     }
