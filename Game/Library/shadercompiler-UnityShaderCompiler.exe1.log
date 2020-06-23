@@ -1,5 +1,2 @@
 Base path: 'E:/My Programs/Unity Editors/2019.3.15f1/Editor/Data', plugins path 'E:/My Programs/Unity Editors/2019.3.15f1/Editor/Data/PlaybackEngines'
 Cmd: initializeCompiler
-Unhandled exception: Protocol error - unexpected end of data (did the Editor crash?)
-
-Quitting shader compiler process

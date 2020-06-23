@@ -13,7 +13,7 @@ public class Location {
 		try {
 			Location location = new Location ((int) obj.x, (int) obj.y);
 			return location;
-		} catch (Exception e) {
+		} catch {
 			Console.WriteLine ("Error parsing object to Location");
 			return null;
 		}

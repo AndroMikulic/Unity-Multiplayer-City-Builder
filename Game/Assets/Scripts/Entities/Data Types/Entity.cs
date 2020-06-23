@@ -14,7 +14,7 @@ public class Entity {
 			entity.location = new Location ((int) obj.location.x, (int) obj.location.y);
 			entity.tileTimestamp = obj.tileTimestamp;
 			return entity;
-		} catch (Exception e) {
+		} catch {
 			Console.WriteLine ("Error parsing object to Entity");
 			return null;
 		}

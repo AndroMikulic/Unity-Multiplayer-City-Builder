@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Concurrent;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class EntityManager : MonoBehaviour {
 
 	public Managers managers;
 
-	public Mode mode;
-	public Camera camera;
-	public Location clickPos = new Location (-1, -1);
 	public int worldOffset = 256;
 
 	public Entity selectedEntity;
@@ -19,45 +14,8 @@ public class EntityManager : MonoBehaviour {
 	public Transform entityCollection;
 	public long[, ] tileTimestamps = new long[Constants.Gameplay.WORLD_SIZE, Constants.Gameplay.WORLD_SIZE];
 
-	void Start () {
-		Entity e = new Entity ();
-		e.entityType = EntityType.BUILDING;
-		selectedEntity = e;
-	}
-
-	void Update () {
-		if (Input.GetMouseButtonDown (0)) {
-			if (!managers.networkManager.connected) {
-				return;
-			}
-			RaycastHit hit;
-			Ray ray = camera.ScreenPointToRay (Input.mousePosition);
-			if (Physics.Raycast (ray, out hit, Mathf.Infinity)) {
-				HitPointToLocation (hit.point);
-				if (mode.Equals (Mode.CREATE)) {
-					RequestEntityCreation (clickPos);
-				}
-			}
-		}
-
-		if (Input.GetMouseButtonDown (1)) {
-			if (!managers.networkManager.connected) {
-				return;
-			}
-			RaycastHit hit;
-			Ray ray = camera.ScreenPointToRay (Input.mousePosition);
-			if (Physics.Raycast (ray, out hit, Mathf.Infinity)) {
-				HitPointToLocation (hit.point);
-				if (mode.Equals (Mode.CREATE)) {
-					RequestEntityDeletion (clickPos);
-				}
-			}
-		}
-	}
-
-	void HitPointToLocation (Vector3 point) {
-		clickPos.x = (int) point.x + worldOffset;
-		clickPos.y = (int) point.z + worldOffset;
+	public Location HitPointToLocation (Vector3 point) {
+		return new Location ((int) point.x + worldOffset, (int) point.z + worldOffset);
 	}
 
 	public void RequestEntityCreation (Location location) {
@@ -90,11 +48,5 @@ public class EntityManager : MonoBehaviour {
 			}
 			return false;
 		}
-	}
-
-	public enum Mode {
-		NONE,
-		CREATE,
-		DELETE
 	}
 }

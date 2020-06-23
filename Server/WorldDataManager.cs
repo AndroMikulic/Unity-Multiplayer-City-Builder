@@ -35,8 +35,19 @@ namespace Server
             databaseManager = new DatabaseManager(this);
             InitializeTileTimestamps();
 
+            ShowWorldStatus();
+
             entityUpdateThread = new Thread(new ThreadStart(OperationQueueHandler));
             entityUpdateThread.Start();
+        }
+
+        void ShowWorldStatus()
+        {
+            Console.WriteLine("--------------------------------");
+            Console.WriteLine("City name: " + worldConfig.name);
+            Console.WriteLine("Treasury: " + city.money);
+            Console.WriteLine("Tax rate: " + city.taxes + "%");
+            Console.WriteLine("--------------------------------");
         }
 
         void LoadWorldConfig()
@@ -97,7 +108,7 @@ namespace Server
 
             if (city.money - price > 0)
             {
-                if (!LocationOccupied(location))
+                if (!ValidateLocation(location))
                 {
                     if (entity.entityType.Equals(EntityType.BUILDING))
                     {
@@ -161,11 +172,19 @@ namespace Server
             }
         }
 
-        bool LocationOccupied(Location l)
+        bool ValidateLocation(Location location)
         {
-            if (!buildings.ContainsKey(l))
+            if (location.x < 0 || location.x > Constants.Gameplay.WORLD_SIZE - 1)
             {
-                if (!roadTiles.ContainsKey(l))
+                return false;
+            }
+            if (location.y < 0 || location.y > Constants.Gameplay.WORLD_SIZE - 1)
+            {
+                return false;
+            }
+            if (!buildings.ContainsKey(location))
+            {
+                if (!roadTiles.ContainsKey(location))
                 {
                     return false;
                 }
@@ -186,15 +205,23 @@ namespace Server
 
         public long UpdateTile(Location location)
         {
-            int x = location.x - 1;
-            int y = location.y - 1;
+            int x = location.x;
+            int y = location.y;
             ++tileTimestamp[x, y];
             return tileTimestamp[x, y];
         }
 
         public long GetTileTimestamp(Location location)
         {
-            return tileTimestamp[location.x - 1, location.y - 1];
+            try
+            {
+                return tileTimestamp[location.x, location.y];
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Invalid location provided: " + location.x + " - " + location.y);
+                return -1;
+            }
         }
     }
 }

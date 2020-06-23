@@ -20,7 +20,7 @@ public class Building : Entity {
 			building.population = obj.population;
 			building.resource = obj.resource;
 			return building;
-		} catch (Exception e) {
+		} catch {
 			Console.WriteLine ("Error parsing object to Building");
 			return null;
 		}
