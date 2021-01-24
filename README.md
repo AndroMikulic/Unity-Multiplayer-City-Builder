@@ -1,5 +1,5 @@
 # Multiplayer  City Building Prototype
-An open source game development project.
+An open source game development project made for the purpose of creating a series of YouTube tutorials on how to make it.
 The game is a Cities Skylines inspired multiplayer game, with no netcode freamework. 
 
 Design document
