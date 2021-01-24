@@ -1,4 +1,4 @@
-# Players Buildlines
+# Multiplayer  City Building Prototype
 An open source game development project.
 The game is a Cities Skylines inspired multiplayer game, with no netcode freamework. 
 
